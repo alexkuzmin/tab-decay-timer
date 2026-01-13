@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Tab Decay Timer",
+  "version": "1.0",
+  "description": "Visual indicator showing how long tabs have been inactive",
+  "permissions": [
+    "tabs",
+    "alarms"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Tab Decay Timer"
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}
