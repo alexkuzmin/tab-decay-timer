@@ -5,7 +5,8 @@
   "description": "Visual indicator showing how long tabs have been inactive",
   "permissions": [
     "tabs",
-    "alarms"
+    "alarms",
+    "storage"
   ],
   "background": {
     "service_worker": "background.js"

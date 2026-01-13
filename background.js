@@ -14,8 +14,16 @@ const COLORS = {
   DECAYED: '#ef4444'   // red
 };
 
-// Store when each tab became inactive
-const inactiveSince = new Map();
+// Load inactive times from storage
+async function loadInactiveTimes() {
+  const result = await chrome.storage.local.get('inactiveSince');
+  return result.inactiveSince || {};
+}
+
+// Save inactive times to storage
+async function saveInactiveTimes(data) {
+  await chrome.storage.local.set({ inactiveSince: data });
+}
 
 function getDecayLevel(age) {
   if (age < THRESHOLDS.FRESH) return 'FRESH';
@@ -47,9 +55,12 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   const activatedTabId = activeInfo.tabId;
   const now = Date.now();
 
+  // Load stored data
+  const inactiveSince = await loadInactiveTimes();
+
   // If this tab was inactive, show badge with how long it was inactive
-  if (inactiveSince.has(activatedTabId)) {
-    const inactiveTime = inactiveSince.get(activatedTabId);
+  if (inactiveSince[activatedTabId]) {
+    const inactiveTime = inactiveSince[activatedTabId];
     const age = now - inactiveTime;
 
     const level = getDecayLevel(age);
@@ -66,19 +77,24 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
     }, 10000);
 
     // Remove from inactive map since it's now active
-    inactiveSince.delete(activatedTabId);
+    delete inactiveSince[activatedTabId];
   }
 
   // Mark all OTHER tabs as inactive starting now
   const allTabs = await chrome.tabs.query({});
   for (const tab of allTabs) {
-    if (tab.id !== activatedTabId && !inactiveSince.has(tab.id)) {
-      inactiveSince.set(tab.id, now);
+    if (tab.id !== activatedTabId && !inactiveSince[tab.id]) {
+      inactiveSince[tab.id] = now;
     }
   }
+
+  // Save updated data
+  await saveInactiveTimes(inactiveSince);
 });
 
 // Clean up when tabs are closed
-chrome.tabs.onRemoved.addListener((tabId) => {
-  inactiveSince.delete(tabId);
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+  const inactiveSince = await loadInactiveTimes();
+  delete inactiveSince[tabId];
+  await saveInactiveTimes(inactiveSince);
 });
