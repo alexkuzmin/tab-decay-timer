@@ -12,7 +12,8 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Tab Decay Timer"
+    "default_title": "Tab Decay Timer",
+    "default_popup": "popup.html"
   },
   "icons": {
     "16": "icon.png",
